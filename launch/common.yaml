@@ -1,0 +1,38 @@
+#config/common.yaml
+---
+# Control server config
+## operationMode determines the input control signals:
+### In IDClient mode, control signal input from ID server (ying), and signal will be published to topic
+### In ROS2_sub mode, control signal input from topic subscriber
+## sendInterval determines the rate which signal pass to motor controllers
+control_prop:
+    operationMode : "IDClient" # "IDClient", "ROS2_sub"
+    sendInterval : 0.3
+
+# Internal ID server config (Jim)
+internal_prop:
+    hostIP : "192.168.1.42"
+    port : 0
+    ID : 0
+
+# External ID server config (Ying)
+external_prop:
+    hostIP : "61.220.23.240"
+    port : "10000"
+    ID : "CAR1"
+
+# ROS2 topic setting (Both IDClient and ROS2_sub mode requirement)
+## topicName defines the topic that will be publish (IDClient mode) or subscribe (ROS2_sub mode)
+## publishInterval only use at IDClient mode
+topic_Control:
+    topicName : "remotecomm_0"
+    publishInterval : 0.1
+
+# Safety server (SafetyReq.srv)
+service_SafetyServer:
+    serviceName : "safety_0"
+    gndDetectNode : "grounddetect_0_node" # Node name
+
+node_prop:
+    nodeName : "controlserver_0_node"
+    namespace : "V0"
