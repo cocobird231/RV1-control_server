@@ -13,7 +13,7 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package="py_controlserver",
-            namespace=data['node_prop']['namespace'],
+            namespace=data['generic_prop']['namespace'],
             executable="run",
             output="screen",
             emulate_tty=True,
@@ -29,9 +29,15 @@ def generate_launch_description():
                     "externalIDServerDeviceID" : data['external_prop']['ID'], 
                     "topicName" : data['topic_Control']['topicName'], 
                     "publishInterval" : data['topic_Control']['publishInterval'], 
-                    "serviceName" : data['service_SafetyServer']['serviceName'], 
-                    "gndDetectNode" : data['service_SafetyServer']['gndDetectNode'], 
-                    "mainNodeName" : data['node_prop']['nodeName'], 
+                    "gndDetectNode" : data['safety_prop']['gndDetectNode'], 
+
+                    # Settings for Params class under vehicle_interfaces/params.h
+                    # Do not change the settings rashly
+                    "nodeName" : data['generic_prop']['nodeName'], 
+                    "id" : data['generic_prop']['id'], 
+                    "qosService" : data['generic_prop']['qosService'], 
+                    "safetyService" : data['generic_prop']['safetyService'], 
+                    "timesyncService" : data['generic_prop']['timesyncService'], 
                 }
             ]
         )

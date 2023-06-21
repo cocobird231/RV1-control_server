@@ -28,11 +28,16 @@ topic_Control:
     topicName : "remotecomm_0"
     publishInterval : 0.1
 
-# Safety server (SafetyReq.srv)
-service_SafetyServer:
-    serviceName : "safety_0"
+# Source of emergency percentages
+safety_prop:
     gndDetectNode : "grounddetect_0_node" # Node name
 
-node_prop:
-    nodeName : "controlserver_0_node"
+# Settings for Params class under vehicle_interfaces/params.h
+# The nodeName describes the name of node, the name will be automatically formed as "<nodeName>_<id>_node"
+generic_prop:
     namespace : "V0"
+    nodeName : "controlserver"
+    id : 0 # Frequently changed parameter
+    qosService : "qos_0"
+    safetyService : "safety_0"
+    timesyncService : "timesync_0"

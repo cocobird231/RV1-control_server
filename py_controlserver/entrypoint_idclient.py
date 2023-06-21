@@ -68,7 +68,7 @@ def main(params):
     executorTH = threading.Thread(target=executor.spin, daemon=True)
     executorTH.start()
 
-    safety_node = safety.SafetyNode(params.mainNodeName, params.serviceName)
+    safety_node = safety.SafetyNode(params.nodeName, params.safetyService)
     exec_safety = rclpy.executors.MultiThreadedExecutor()
     exec_safety.add_node(safety_node)
     exec_safety_th = threading.Thread(target=exec_safety.spin, daemon=True)

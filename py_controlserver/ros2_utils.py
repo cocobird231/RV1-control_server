@@ -23,9 +23,13 @@ class ControlParameters(Node):
         
         self.topicName = 'remotecomm_0'
         self.publishInterval = 0.2
-        self.serviceName = 'safety_0'
         self.gndDetectNode = 'grounddetect_0_node'
-        self.mainNodeName = 'controlserver_0_node'
+
+        self.nodeName = 'controlserver'
+        self.id = 0
+        self.qosService = 'qos_0'
+        self.safetyService = 'safety_0'
+        self.timesyncService = 'timesync_0'
         
         self.declare_parameter('operationMode', self.operationMode)
         self.declare_parameter('sendInterval', self.sendInterval)
@@ -40,9 +44,13 @@ class ControlParameters(Node):
         
         self.declare_parameter('topicName', self.topicName)
         self.declare_parameter('publishInterval', self.publishInterval)
-        self.declare_parameter('serviceName', self.serviceName)
         self.declare_parameter('gndDetectNode', self.gndDetectNode)
-        self.declare_parameter('mainNodeName', self.mainNodeName)
+
+        self.declare_parameter('nodeName', self.nodeName)
+        self.declare_parameter('id', self.id)
+        self.declare_parameter('qosService', self.qosService)
+        self.declare_parameter('safetyService', self.safetyService)
+        self.declare_parameter('timesyncService', self.timesyncService)
         self._getParam()
     
     def _getParam(self):
@@ -60,9 +68,14 @@ class ControlParameters(Node):
 
         self.topicName = rclpy.parameter.parameter_value_to_python(self.get_parameter('topicName').get_parameter_value())
         self.publishInterval = rclpy.parameter.parameter_value_to_python(self.get_parameter('publishInterval').get_parameter_value())
-        self.serviceName = rclpy.parameter.parameter_value_to_python(self.get_parameter('serviceName').get_parameter_value())
         self.gndDetectNode = rclpy.parameter.parameter_value_to_python(self.get_parameter('gndDetectNode').get_parameter_value())
-        self.mainNodeName = rclpy.parameter.parameter_value_to_python(self.get_parameter('mainNodeName').get_parameter_value())
+
+        self.nodeName = rclpy.parameter.parameter_value_to_python(self.get_parameter('nodeName').get_parameter_value())
+        self.id = rclpy.parameter.parameter_value_to_python(self.get_parameter('id').get_parameter_value())
+        self.qosService = rclpy.parameter.parameter_value_to_python(self.get_parameter('qosService').get_parameter_value())
+        self.safetyService = rclpy.parameter.parameter_value_to_python(self.get_parameter('safetyService').get_parameter_value())
+        self.timesyncService = rclpy.parameter.parameter_value_to_python(self.get_parameter('timesyncService').get_parameter_value())
+        self.nodeName += '_' + str(self.id) + '_node'
 
 class WheelStatePublisher(Node):
     def __init__(self, nodeName : str, topicName : str, interval_s : float):
