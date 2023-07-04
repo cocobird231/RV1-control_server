@@ -20,24 +20,26 @@ def generate_launch_description():
             parameters=[
                 {
                     "operationMode" : data['control_prop']['operationMode'], 
-                    "sendInterval" : data['control_prop']['sendInterval'], 
+                    "sendInterval_s" : data['control_prop']['sendInterval_s'], 
                     "internalIDServerIP" : data['internal_prop']['hostIP'], 
                     "internalIDServerPort" : data['internal_prop']['port'], 
                     "internalIDServerDeviceID" : data['internal_prop']['ID'], 
                     "externalIDServerIP" : data['external_prop']['hostIP'], 
                     "externalIDServerPort" : data['external_prop']['port'], 
                     "externalIDServerDeviceID" : data['external_prop']['ID'], 
-                    "topicName" : data['topic_Control']['topicName'], 
-                    "publishInterval" : data['topic_Control']['publishInterval'], 
+                    "topicName" : data['topic_Control']['topicName'] + '_' + str(data['generic_prop']['id']), 
+                    "publishInterval_s" : data['topic_Control']['publishInterval_s'], 
                     "gndDetectNode" : data['safety_prop']['gndDetectNode'], 
 
                     # Settings for Params class under vehicle_interfaces/params.h
                     # Do not change the settings rashly
-                    "nodeName" : data['generic_prop']['nodeName'], 
+                    "nodeName" : data['generic_prop']['nodeName'] + '_' + str(data['generic_prop']['id']) + '_node', 
                     "id" : data['generic_prop']['id'], 
                     "qosService" : data['generic_prop']['qosService'], 
                     "safetyService" : data['generic_prop']['safetyService'], 
                     "timesyncService" : data['generic_prop']['timesyncService'], 
+                    "timesyncInterval_ms" : data['generic_prop']['timesyncInterval_ms'], 
+                    "timesyncAccuracy_ms" : data['generic_prop']['timesyncAccuracy_ms'], 
                 }
             ]
         )

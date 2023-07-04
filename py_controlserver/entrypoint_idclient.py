@@ -62,7 +62,7 @@ def main(params):
     print("Controller connected!")
 
     ######## ROS2 ########
-    wsPub = WheelStatePublisher(idclient_utils.remoteDevName, params.topicName, params.publishInterval)
+    wsPub = WheelStatePublisher(params)
     executor = rclpy.executors.MultiThreadedExecutor()
     executor.add_node(wsPub)
     executorTH = threading.Thread(target=executor.spin, daemon=True)

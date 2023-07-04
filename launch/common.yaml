@@ -7,7 +7,7 @@
 ## sendInterval determines the rate which signal pass to motor controllers
 control_prop:
     operationMode : "IDClient" # "IDClient", "ROS2_sub"
-    sendInterval : 0.3
+    sendInterval_s : 0.3
 
 # Internal ID server config (Jim)
 internal_prop:
@@ -25,8 +25,8 @@ external_prop:
 ## topicName defines the topic that will be publish (IDClient mode) or subscribe (ROS2_sub mode)
 ## publishInterval only use at IDClient mode
 topic_Control:
-    topicName : "remotecomm_0"
-    publishInterval : 0.1
+    topicName : "remotecomm" # The _id number will added in suffix, i.e. "<topicName>_<id>"
+    publishInterval_s : 0.1
 
 # Source of emergency percentages
 safety_prop:
@@ -41,3 +41,5 @@ generic_prop:
     qosService : "qos_0"
     safetyService : "safety_0"
     timesyncService : "timesync_0"
+    timesyncInterval_ms : 3000000.0
+    timesyncAccuracy_ms : 2.0

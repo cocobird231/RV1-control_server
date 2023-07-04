@@ -3,7 +3,7 @@ from control import *
 # TODO: Update ros2_sub method. Update to support safety service.
 def main(params):
     ######## ROS2 ########
-    wsSub = WheelStateSubscriber(params.nodeName, params.topicName)
+    wsSub = WheelStateSubscriber(params)
     executor = rclpy.executors.MultiThreadedExecutor()
     executor.add_node(wsSub)
     executorTH = threading.Thread(target=executor.spin, daemon=True)
