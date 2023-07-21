@@ -21,7 +21,7 @@ from os.path import expanduser
 import threading
 import genMotorPWM
 __controlPermission = True
-__safetyPermission = True
+__safetyPermission = False # Unverified
 __safetyOverControl = True
 
 def JoystickUpCallback(sock):

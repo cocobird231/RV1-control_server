@@ -145,7 +145,7 @@ def main(params):
         except:
             print('!!!Catch Main Loop Exception!!!', splitMsgList)
             genMotorPWM.ConvertSteeringWheelToCommand('Park', 0, 0, 0, 0, 1)
-        time.sleep(params.sendInterval)
+        time.sleep(params.sendInterval_s)
     genMotorPWM.ConvertSteeringWheelToCommand('Park', 0, 0, 0, 0, 1)
     handler1.join()
     executorTH.join()
