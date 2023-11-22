@@ -3,7 +3,7 @@
     "devInterface" : "eth0", 
     "devMultiNode" : true, 
 
-    "qosService" : "qos_0", 
+    "qosService" : "", 
     "qosDirPath" : "launch/qos", 
 
     "safetyService" : "safety_0", 

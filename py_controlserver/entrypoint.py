@@ -4,6 +4,7 @@ import rclpy
 from ros2_utils import ControlParameters
 import entrypoint_idclient
 import entrypoint_ros2_sub
+import new
 
 def main(args=None):
     ######## ROS2 ########
@@ -15,4 +16,7 @@ def main(args=None):
         entrypoint_idclient.main(params)
     elif (params.operationMode == 'ROS2_sub'):
         entrypoint_ros2_sub.main(params)
+    elif (params.operationMode == 'new'):
+        new.main(params)
+    rclpy.shutdown()
     print('Process Ended.')

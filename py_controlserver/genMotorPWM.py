@@ -20,7 +20,7 @@ def GammaCorrection(value, gamma, min_bound = 0, max_bound = 1):
 ################################################################################################
 #                                       SteeringWheel Parameters
 ################################################################################################
-STEERINGWHEEL_TOLERANCE = 1500# left < -1500, 1500 > right
+STEERINGWHEEL_TOLERANCE = 1000# left < -1000, 1000 > right
 CAR_LENGTH = 2200# unit: mm
 CAR_WIDTH = 2080# unit: mm
 MAX_RADIUS_ACKERMANN = 60000# unit: mm
@@ -242,3 +242,124 @@ def ConvertSteeringWheelToCommand(gear : str, steeringWheel : int, thr : int, br
         retMotorList.append(_m_val * -1 if (_m_dir == 2) else 1)
     
     return retMotorList, steeringAngList, steeringType
+
+
+# New Method
+###################################################################################################################################
+
+from vehicle_interfaces.msg import Chassis
+from vehicle_interfaces.msg import SteeringWheel
+
+def CalSteeringWheelToChassis(swState : SteeringWheel):
+    steeringWheel = swState.steering
+    steeringWheelAbs = abs(swState.steering)
+    refSpeed = ValueMapping(swState.pedal_throttle, 0, 255, 0, 500)
+    motorPWMList = [0, 0, 0, 0]# Corresponds to motorIDList
+    motorDirectionList = [0, 0, 0, 0]# Corresponds to motorIDList
+    steeringAngList = [0, 0, 0, 0]# Corresponds to steeringIDList
+
+    if (steeringWheelAbs < STEERINGWHEEL_TOLERANCE):
+        steeringWheel = 0
+
+    if (swState.func_0 == 3):
+        if (swState.steering > 0):
+            motorDirectionList = [-1, 1, -1, 1]# 1->-1; 2->1
+        elif (swState.steering < 0):
+            motorDirectionList = [1, -1, 1, -1]
+    else:
+        if (swState.gear == SteeringWheel.GEAR_DRIVE):
+            motorDirectionList = [1, 1, 1, 1]
+        elif (swState.gear == SteeringWheel.GEAR_REVERSE):
+            motorDirectionList = [-1, -1, -1, -1]
+
+    innerAng = 0
+    outerAng = 0
+
+    innerVelo = 0
+    outerVelo = 0
+
+    if (swState.func_0 == 1):# Ackermann
+        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.1, 0, 32768)
+        steeringRadius = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MAX_RADIUS_ACKERMANN, MIN_RADIUS_ACKERMANN)
+        innerRadius = steeringRadius - CAR_WIDTH / 2
+        outerRadius = steeringRadius + CAR_WIDTH / 2
+        # Steering
+        innerAng = math.degrees(math.atan2(CAR_LENGTH, innerRadius))
+        outerAng = math.degrees(math.atan2(CAR_LENGTH, outerRadius))
+        # Speed
+        innerVelo = refSpeed * math.sqrt(innerRadius**2 + CAR_LENGTH**2) / steeringRadius
+        outerVelo = refSpeed * math.sqrt(outerRadius**2 + CAR_LENGTH**2) / steeringRadius
+        rearInnerVelo = refSpeed * innerRadius / steeringRadius
+        rearOuterVelo = refSpeed * outerRadius / steeringRadius
+        # Assign lists
+        if (steeringWheel > 0):# Turn right, inner: 11
+            if (swState.gear == SteeringWheel.GEAR_DRIVE):
+                steeringAngList = [innerAng, outerAng, 0, 0]
+                motorPWMList = MotorRPMToPWM(innerVelo, outerVelo, rearInnerVelo, rearOuterVelo)
+            elif (swState.gear == SteeringWheel.GEAR_REVERSE):
+                steeringAngList = [0, 0, outerAng, innerAng]
+                motorPWMList = MotorRPMToPWM(rearOuterVelo, rearInnerVelo, outerVelo, innerVelo)
+        else:# Turn left
+            innerAng = -innerAng
+            outerAng = -outerAng
+            if (swState.gear == SteeringWheel.GEAR_DRIVE):
+                steeringAngList = [outerAng, innerAng, 0, 0]
+                motorPWMList = MotorRPMToPWM(outerVelo, innerVelo, rearOuterVelo, rearInnerVelo)
+            elif (swState.gear == SteeringWheel.GEAR_REVERSE):
+                steeringAngList = [0, 0, innerAng, outerAng]
+                motorPWMList = MotorRPMToPWM(rearInnerVelo, rearOuterVelo, innerVelo, outerVelo)
+
+    elif (swState.func_0 == 2):# 4ws center baseline
+        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.1, 0, 32768)
+        steeringRadius = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MAX_RADIUS_4WS, MIN_RADIUS_4WS)
+        innerRadius = steeringRadius - CAR_WIDTH / 2
+        outerRadius = steeringRadius + CAR_WIDTH / 2
+        # Steering
+        innerAng = math.degrees(math.atan2(CAR_LENGTH / 2, innerRadius))
+        outerAng = math.degrees(math.atan2(CAR_LENGTH / 2, outerRadius))
+        # Speed
+        innerVelo = refSpeed * math.sqrt(innerRadius**2 + (CAR_LENGTH / 2)**2) / steeringRadius
+        outerVelo = refSpeed * math.sqrt(outerRadius**2 + (CAR_LENGTH / 2)**2) / steeringRadius
+        # Assign lists
+        if (steeringWheel > 0):# Turn right, inner: 11
+            if (swState.gear == SteeringWheel.GEAR_DRIVE):
+                steeringAngList = [innerAng, outerAng, -innerAng, -outerAng]
+                motorPWMList = MotorRPMToPWM(innerVelo, outerVelo, innerVelo, outerVelo)
+            elif (swState.gear == SteeringWheel.GEAR_REVERSE):
+                steeringAngList = [-outerAng, -innerAng, outerAng, innerAng]
+                motorPWMList = MotorRPMToPWM(outerVelo, innerVelo, outerVelo, innerVelo)
+        else:# Turn left
+            innerAng = -innerAng
+            outerAng = -outerAng
+            if (swState.gear == SteeringWheel.GEAR_DRIVE):
+                steeringAngList = [outerAng, innerAng, -outerAng, -innerAng]
+                motorPWMList = MotorRPMToPWM(outerVelo, innerVelo, outerVelo, innerVelo)
+            elif (swState.gear == SteeringWheel.GEAR_REVERSE):
+                steeringAngList = [-innerAng, -outerAng, innerAng, outerAng]
+                motorPWMList = MotorRPMToPWM(innerVelo, outerVelo, innerVelo, outerVelo)
+
+    elif (swState.func_0 == 3):# Zero turn
+        steeringAngList = [-20, 20, 20, -20]
+        motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
+
+    for i in range(4):
+        motorPWMList[i] *= motorDirectionList[i]
+        steeringAngList[i] *= steeringCorrectionList[i]
+    
+    motorPWMList = [float(i) for i in motorPWMList]
+    steeringAngList = [float(i) for i in steeringAngList]
+
+    ret = Chassis()
+    ret.wheel_num = 4
+    ret.drive_motor = motorPWMList
+    ret.steering_motor = steeringAngList
+    ret.brake_motor = [0.0, 0.0, 0.0, 0.0]
+    ret.parking_signal = [False, False, False, False]
+
+    if (swState.gear == SteeringWheel.GEAR_PARK or swState.pedal_brake > 10):
+        ret.drive_motor = [0.0, 0.0, 0.0, 0.0]
+        ret.parking_signal = [True, True, True, True]
+    elif (swState.gear == SteeringWheel.GEAR_NEUTRAL):
+        ret.drive_motor = [0.0, 0.0, 0.0, 0.0]
+
+    return ret

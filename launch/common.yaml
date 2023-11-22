@@ -6,7 +6,7 @@
 ### In ROS2_sub mode, control signal input from topic subscriber
 ## sendInterval determines the rate which signal pass to motor controllers
 control_prop:
-    operationMode : "IDClient" # "IDClient", "ROS2_sub"
+    operationMode : "new" # "IDClient", "ROS2_sub", "new"
     sendInterval_s : 0.3
 
 # Internal ID server config (Jim)
@@ -20,6 +20,10 @@ external_prop:
     hostIP : "61.220.23.240"
     port : "10000"
     ID : "CAR1"
+
+# Register server
+service_prop:
+    serviceName : "controlserver" # The _id number will added in suffix, i.e. "<serviceName>_<id>"
 
 # ROS2 topic setting (Both IDClient and ROS2_sub mode requirement)
 ## topicName defines the topic that will be publish (IDClient mode) or subscribe (ROS2_sub mode)

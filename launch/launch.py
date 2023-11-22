@@ -36,6 +36,7 @@ def generate_launch_description():
                     "externalIDServerIP" : data['external_prop']['hostIP'], 
                     "externalIDServerPort" : data['external_prop']['port'], 
                     "externalIDServerDeviceID" : data['external_prop']['ID'], 
+                    "serviceName" : data['service_prop']['serviceName'] + '_' + str(data['generic_prop']['id']), 
                     "topicName" : data['topic_Control']['topicName'] + '_' + str(data['generic_prop']['id']), 
                     "publishInterval_s" : data['topic_Control']['publishInterval_s'], 
                     "gndDetectNode" : data['safety_prop']['gndDetectNode'], 

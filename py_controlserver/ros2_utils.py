@@ -23,10 +23,13 @@ class ControlParameters(GenericParams):
         self.externalIDServerIP = '61.220.23.240'
         self.externalIDServerPort = '10000'
         self.externalIDServerDeviceID = 'CAR1'
+
+        self.serviceName = 'controlserver_0'
         
         self.topicName = 'remotecomm_0'
         self.publishInterval_s = 0.2
         self.gndDetectNode = 'grounddetect_0_node'
+
 
         self.declare_parameter('operationMode', self.operationMode)
         self.declare_parameter('sendInterval_s', self.sendInterval_s)
@@ -38,6 +41,8 @@ class ControlParameters(GenericParams):
         self.declare_parameter('externalIDServerIP', self.externalIDServerIP)
         self.declare_parameter('externalIDServerPort', self.externalIDServerPort)
         self.declare_parameter('externalIDServerDeviceID', self.externalIDServerDeviceID)
+
+        self.declare_parameter('serviceName', self.serviceName)
         
         self.declare_parameter('topicName', self.topicName)
         self.declare_parameter('publishInterval_s', self.publishInterval_s)
@@ -45,20 +50,22 @@ class ControlParameters(GenericParams):
         self._getParam()
     
     def _getParam(self):
-        self.operationMode = rclpy.parameter.parameter_value_to_python(self.get_parameter('operationMode').get_parameter_value())
-        self.sendInterval_s = rclpy.parameter.parameter_value_to_python(self.get_parameter('sendInterval_s').get_parameter_value())
+        self.operationMode = self.get_parameter('operationMode').get_parameter_value().string_value
+        self.sendInterval_s = self.get_parameter('sendInterval_s').get_parameter_value().double_value
 
-        self.internalIDServerIP = rclpy.parameter.parameter_value_to_python(self.get_parameter('internalIDServerIP').get_parameter_value())
-        self.internalIDServerPort = rclpy.parameter.parameter_value_to_python(self.get_parameter('internalIDServerPort').get_parameter_value())
-        self.internalIDServerDeviceID = rclpy.parameter.parameter_value_to_python(self.get_parameter('internalIDServerDeviceID').get_parameter_value())
+        self.internalIDServerIP = self.get_parameter('internalIDServerIP').get_parameter_value().string_value
+        self.internalIDServerPort = self.get_parameter('internalIDServerPort').get_parameter_value().integer_value
+        self.internalIDServerDeviceID = self.get_parameter('internalIDServerDeviceID').get_parameter_value().integer_value
 
-        self.externalIDServerIP = rclpy.parameter.parameter_value_to_python(self.get_parameter('externalIDServerIP').get_parameter_value())
-        self.externalIDServerPort = rclpy.parameter.parameter_value_to_python(self.get_parameter('externalIDServerPort').get_parameter_value())
-        self.externalIDServerDeviceID = rclpy.parameter.parameter_value_to_python(self.get_parameter('externalIDServerDeviceID').get_parameter_value())
+        self.externalIDServerIP = self.get_parameter('externalIDServerIP').get_parameter_value().string_value
+        self.externalIDServerPort = self.get_parameter('externalIDServerPort').get_parameter_value().string_value
+        self.externalIDServerDeviceID = self.get_parameter('externalIDServerDeviceID').get_parameter_value().string_value
 
-        self.topicName = rclpy.parameter.parameter_value_to_python(self.get_parameter('topicName').get_parameter_value())
-        self.publishInterval_s = rclpy.parameter.parameter_value_to_python(self.get_parameter('publishInterval_s').get_parameter_value())
-        self.gndDetectNode = rclpy.parameter.parameter_value_to_python(self.get_parameter('gndDetectNode').get_parameter_value())
+        self.serviceName = self.get_parameter('serviceName').get_parameter_value().string_value
+
+        self.topicName = self.get_parameter('topicName').get_parameter_value().string_value
+        self.publishInterval_s = self.get_parameter('publishInterval_s').get_parameter_value().double_value
+        self.gndDetectNode = self.get_parameter('gndDetectNode').get_parameter_value().string_value
 
 class WheelStatePublisher(VehicleServiceNode):
     def __init__(self, params : ControlParameters):
