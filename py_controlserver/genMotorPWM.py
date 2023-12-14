@@ -20,7 +20,7 @@ def GammaCorrection(value, gamma, min_bound = 0, max_bound = 1):
 ################################################################################################
 #                                       SteeringWheel Parameters
 ################################################################################################
-STEERINGWHEEL_TOLERANCE = 1000# left < -1000, 1000 > right
+STEERINGWHEEL_TOLERANCE = 1500# left < -1500, 1500 > right
 CAR_LENGTH = 2200# unit: mm
 CAR_WIDTH = 2080# unit: mm
 MAX_RADIUS_ACKERMANN = 60000# unit: mm
@@ -38,15 +38,15 @@ limitPWM = 40
 motorIDList = [11, 12, 13, 14]
 steeringIDList = [41, 42, 43, 44]
 
-m1_y = np.array([10, 15, 20, 25, 30, 40, 50])
-m2_y = np.array([10, 15, 20, 25, 30, 40, 50])
-m3_y = np.array([10, 15, 20, 25, 30])
-m4_y = np.array([10, 15, 20, 25, 30, 40, 50])
+m1_y = np.array([9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
+m2_y = np.array([9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
+m3_y = np.array([9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
+m4_y = np.array([9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55])
 
-m1_x = np.array([121.3, 211.4, 272.6, 316.5, 352.8, 403.3, 444.5])
-m2_x = np.array([91.6, 197.5, 261.6, 308.1, 344, 400, 436.2])
-m3_x = np.array([78, 187.1, 255.2, 302.4, 324.7])
-m4_x = np.array([105.7, 201.1, 262.2, 309.1, 345.1, 398.2, 440.8])
+m1_x = np.array([10.008, 18.782, 51.208, 71.842, 86.204, 97.57, 106.33, 113.8, 120.27, 125.74, 132.48])
+m2_x = np.array([19.38, 27.645, 57.235, 75.871, 89.3, 100.18, 108.56, 115.94, 121.29, 127.41, 128.53])
+m3_x = np.array([13.405, 22.36, 53.677, 73.156, 87.342, 97.856, 107.11, 114.19, 119.71, 126.05, 127.83])
+m4_x = np.array([23.64, 31.071, 58.909, 76.695, 89.88, 99.81, 108.37, 115.45, 120.98, 127.67, 128.28])
 
 p1 = np.polyfit(m1_x, m1_y, 3)  # Last argument is degree of polynomial
 p2 = np.polyfit(m2_x, m2_y, 3)  # Last argument is degree of polynomial
@@ -253,7 +253,7 @@ from vehicle_interfaces.msg import SteeringWheel
 def CalSteeringWheelToChassis(swState : SteeringWheel):
     steeringWheel = swState.steering
     steeringWheelAbs = abs(swState.steering)
-    refSpeed = ValueMapping(swState.pedal_throttle, 0, 255, 0, 500)
+    refSpeed = ValueMapping(swState.pedal_throttle, 0, 255, 0, 120)
     motorPWMList = [0, 0, 0, 0]# Corresponds to motorIDList
     motorDirectionList = [0, 0, 0, 0]# Corresponds to motorIDList
     steeringAngList = [0, 0, 0, 0]# Corresponds to steeringIDList
@@ -262,9 +262,9 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
         steeringWheel = 0
 
     if (swState.func_0 == 3):
-        if (swState.steering > 0):
+        if (steeringWheel > 0):
             motorDirectionList = [-1, 1, -1, 1]# 1->-1; 2->1
-        elif (swState.steering < 0):
+        elif (steeringWheel < 0):
             motorDirectionList = [1, -1, 1, -1]
     else:
         if (swState.gear == SteeringWheel.GEAR_DRIVE):
@@ -278,7 +278,14 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
     innerVelo = 0
     outerVelo = 0
 
-    if (swState.func_0 == 1):# Ackermann
+    if (swState.func_0 == 3):# Zero turn
+        steeringAngList = [-20, 20, 20, -20]
+        motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
+
+    elif (steeringWheel == 0):
+        motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
+
+    elif (swState.func_0 == 1):# Ackermann
         steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.1, 0, 32768)
         steeringRadius = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MAX_RADIUS_ACKERMANN, MIN_RADIUS_ACKERMANN)
         innerRadius = steeringRadius - CAR_WIDTH / 2
@@ -338,9 +345,7 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
                 steeringAngList = [-innerAng, -outerAng, innerAng, outerAng]
                 motorPWMList = MotorRPMToPWM(innerVelo, outerVelo, innerVelo, outerVelo)
 
-    elif (swState.func_0 == 3):# Zero turn
-        steeringAngList = [-20, 20, 20, -20]
-        motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
+
 
     for i in range(4):
         motorPWMList[i] *= motorDirectionList[i]
