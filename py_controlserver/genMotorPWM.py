@@ -27,6 +27,8 @@ MAX_RADIUS_ACKERMANN = 60000# unit: mm
 MIN_RADIUS_ACKERMANN = 7100# unit: mm
 MAX_RADIUS_4WS = 30000# unit: mm
 MIN_RADIUS_4WS = 4100# unit: mm
+MIN_WHEEL_STEER_ANGLE = 0
+MAX_WHEEL_STEER_ANGLE = 20
 
 
 
@@ -286,7 +288,7 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
         motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
 
     elif (swState.func_0 == 1):# Ackermann
-        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.1, 0, 32768)
+        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.2, 0, 32768)
         steeringRadius = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MAX_RADIUS_ACKERMANN, MIN_RADIUS_ACKERMANN)
         innerRadius = steeringRadius - CAR_WIDTH / 2
         outerRadius = steeringRadius + CAR_WIDTH / 2
@@ -317,7 +319,7 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
                 motorPWMList = MotorRPMToPWM(rearInnerVelo, rearOuterVelo, innerVelo, outerVelo)
 
     elif (swState.func_0 == 2):# 4ws center baseline
-        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.1, 0, 32768)
+        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.2, 0, 32768)
         steeringRadius = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MAX_RADIUS_4WS, MIN_RADIUS_4WS)
         innerRadius = steeringRadius - CAR_WIDTH / 2
         outerRadius = steeringRadius + CAR_WIDTH / 2
@@ -345,6 +347,16 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
                 steeringAngList = [-innerAng, -outerAng, innerAng, outerAng]
                 motorPWMList = MotorRPMToPWM(innerVelo, outerVelo, innerVelo, outerVelo)
 
+    elif (swState.func_0 == 4):# parallel
+        steeringWheelAbsCorrection = GammaCorrection(steeringWheelAbs, 0.2, 0, 32768)
+        steeringAngle = ValueMapping(steeringWheelAbsCorrection, 0, 32768, MIN_WHEEL_STEER_ANGLE, MAX_WHEEL_STEER_ANGLE)
+        # Speed
+        motorPWMList = MotorRPMToPWM(refSpeed, refSpeed, refSpeed, refSpeed)
+        # Assign lists
+        if (steeringWheel > 0):# Turn right, inner: 11
+            steeringAngList = [steeringAngle, steeringAngle, steeringAngle, steeringAngle]
+        else:# Turn left
+            steeringAngList = [-steeringAngle, -steeringAngle, -steeringAngle, -steeringAngle]
 
 
     for i in range(4):
