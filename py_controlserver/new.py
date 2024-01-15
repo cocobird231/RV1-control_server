@@ -234,7 +234,6 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                             brk = int(splitMsgList[3])#        Brake pedal value
                             clu = int(splitMsgList[4])#        Clutch pedal value
                             button = int(splitMsgList[5])#      Button value
-                            
 
                             getMsg = SteeringWheel()
 

@@ -60,10 +60,12 @@ def JoystickBtnBCallback(sock):# Disable WIRELESS_BRAKE
     print('[JoystickBtnBCallback] Wireless release brake.')
 
 def JoystickBtnXCallback(sock):# Enable SAFETY_OVER_CONTROL
+    global SAFETY_OVER_CONTROL
     SAFETY_OVER_CONTROL = True
     print('[JoystickBtnXCallback] Enable safety over control.')
 
 def JoystickBtnYCallback(sock):# Disable SAFETY_OVER_CONTROL
+    global SAFETY_OVER_CONTROL
     SAFETY_OVER_CONTROL = False
     print('[JoystickBtnYCallback] Disable safety over control.')
 

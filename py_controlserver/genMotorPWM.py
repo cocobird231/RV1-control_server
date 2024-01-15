@@ -362,7 +362,7 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
     for i in range(4):
         motorPWMList[i] *= motorDirectionList[i]
         steeringAngList[i] *= steeringCorrectionList[i]
-    
+
     motorPWMList = [float(i) for i in motorPWMList]
     steeringAngList = [float(i) for i in steeringAngList]
 
