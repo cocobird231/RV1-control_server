@@ -28,7 +28,7 @@ class ControlParameters(GenericParams):
         
         self.topicName = 'remotecomm_0'
         self.publishInterval_s = 0.2
-        self.gndDetectNode = 'grounddetect_0_node'
+        self.externalTimeout_ms = 2000.0
 
 
         self.declare_parameter('operationMode', self.operationMode)
@@ -46,7 +46,7 @@ class ControlParameters(GenericParams):
         
         self.declare_parameter('topicName', self.topicName)
         self.declare_parameter('publishInterval_s', self.publishInterval_s)
-        self.declare_parameter('gndDetectNode', self.gndDetectNode)
+        self.declare_parameter('externalTimeout_ms', self.externalTimeout_ms)
         self._getParam()
     
     def _getParam(self):
@@ -65,7 +65,7 @@ class ControlParameters(GenericParams):
 
         self.topicName = self.get_parameter('topicName').get_parameter_value().string_value
         self.publishInterval_s = self.get_parameter('publishInterval_s').get_parameter_value().double_value
-        self.gndDetectNode = self.get_parameter('gndDetectNode').get_parameter_value().string_value
+        self.externalTimeout_ms = self.get_parameter('externalTimeout_ms').get_parameter_value().double_value
 
 class WheelStatePublisher(VehicleServiceNode):
     def __init__(self, params : ControlParameters):

@@ -122,26 +122,51 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
             if (control2.WIRELESS_BRAKE):
                 self.__allBrake()
             else:
-                # Safety
-                if (control2.SAFETY_OVER_CONTROL and self.getEmergency(self.__params.gndDetectNode) > 0.7):
-                    self.__allBrake()
-                else:
-                    # Decide output signal
-                    if (control2.SWITCH_SIGNAL == 0):
-                        self.__currentPubMsg = self.__externalInputMsg
-                        self.__outputSignal = self.__externalSignal
-                    elif (control2.SWITCH_SIGNAL == 1):
-                        self.__currentPubMsg = self.__ros2InputMsg
-                        self.__outputSignal = self.__ros2Signal
+                # Decide output signal
+                if (control2.SWITCH_SIGNAL == 0):
+                    self.__currentPubMsg = self.__externalInputMsg
+                    self.__outputSignal = self.__externalSignal
+                elif (control2.SWITCH_SIGNAL == 1):
+                    self.__currentPubMsg = self.__ros2InputMsg
+                    self.__outputSignal = self.__ros2Signal
 
-                    # Valid signal
-                    if (self.__outputSignal):
-                        print(self.__outputSignal)
-                        for _mid, _mval, _sid, _sval, _bval, _brk in zip(genMotorPWM.motorIDList, self.__outputSignal.drive_motor, genMotorPWM.steeringIDList, self.__outputSignal.steering_motor, self.__outputSignal.brake_motor, self.__outputSignal.parking_signal):
-                            _dir = 1 if _mval < 0 else 2
+                # Valid signal
+                if (self.__outputSignal):
+                    print(self.__outputSignal)
+
+                    safetyPassF = True
+                    # Check safety
+                    if (control2.SAFETY_OVER_CONTROL):
+                        emPs = self.getEmergency("nearest")
+                        if (emPs):
+                            emForwardF = True if emPs[0] > 0.7 else False
+                            emBackwardF = True if emPs[1] > 0.7 else False
+
+                            # check forward or backward TODO: refspeed to pwm
+                            dirIndicator = [1 if i > 0 else -1 for i in self.__outputSignal.drive_motor]
+                            if (emForwardF and not (sum(dirIndicator) <= -2)):# Forward
+                                safetyPassF = False
+                            elif (emBackwardF and not (sum(dirIndicator) >= 2)):# Backward
+                                safetyPassF = False
+
+                    if (not safetyPassF):
+                        self.__allBrake()
+                    else:
+                        for _mid, _mcorr, _mval, _sid, _scorr, _sval, _bval, _brk in zip(genMotorPWM.motorIDList, \
+                                                                                            genMotorPWM.motorDirectionCorrectionList, \
+                                                                                            self.__outputSignal.drive_motor, \
+                                                                                            genMotorPWM.steeringIDList, \
+                                                                                            genMotorPWM.steeringCorrectionList, \
+                                                                                            self.__outputSignal.steering_motor, \
+                                                                                            self.__outputSignal.brake_motor, \
+                                                                                            self.__outputSignal.parking_signal):
+                            _dir = 1 if _mval * _mcorr < 0 else 2
                             _mval = abs(_mval)
                             control2.SendCommandSetAxleAndGetResponse_(sock=control2.commandSock, deviceId=int(_mid), runDirection = int(_dir), brake = int(_brk), pwm = int(_mval))
-                            self.__sendSteeringCommand(_sid, _sval)
+                            self.__sendSteeringCommand(_sid, _sval * _scorr)
+                else:
+                    self.__allBrake()
+                    print("Not valid signal:", self.__outputSignal)
 
             time.sleep(self.__params.sendInterval_s)
 
@@ -221,7 +246,7 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
             else:
                 try:
                     if (self.__remoteF and self.__externalTimeoutTs):
-                        if ((self.get_clock().now() - self.__externalTimeoutTs).nanoseconds > self.__externalTimeout_ms * 1000000):
+                        if ((self.get_clock().now() - self.__externalTimeoutTs).nanoseconds > self.__params.externalTimeout_ms * 1000000):
                             self.get_logger().error('[ControlServer.__externalIDClientTh] External ID client timeout. Reconnect to ID server...')
                             self.__externalConnF = False
                             continue
@@ -230,9 +255,9 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                         if (len(splitMsgList) >= 6):# [GEAR, STEERING, THROTTLE, BRAKE, CLUTCH, BUTTON, TIMESTAMP]
                             gear = splitMsgList[0]#             Gear string
                             steering = int(splitMsgList[1])#    Steering wheel value
-                            thr = int(splitMsgList[2])#        Throttle pedal value
-                            brk = int(splitMsgList[3])#        Brake pedal value
-                            clu = int(splitMsgList[4])#        Clutch pedal value
+                            thr = int(splitMsgList[2])#         Throttle pedal value
+                            brk = int(splitMsgList[3])#         Brake pedal value
+                            clu = int(splitMsgList[4])#         Clutch pedal value
                             button = int(splitMsgList[5])#      Button value
 
                             getMsg = SteeringWheel()

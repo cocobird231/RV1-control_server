@@ -39,7 +39,7 @@ def generate_launch_description():
                     "serviceName" : data['service_prop']['serviceName'] + '_' + str(data['generic_prop']['id']), 
                     "topicName" : data['topic_Control']['topicName'] + '_' + str(data['generic_prop']['id']), 
                     "publishInterval_s" : data['topic_Control']['publishInterval_s'], 
-                    "gndDetectNode" : data['safety_prop']['gndDetectNode'], 
+                    "externalTimeout_ms" : data['safety_prop']['externalTimeout_ms'], 
 
                     # Settings for Params class under vehicle_interfaces/params.h
                     # Do not change the settings rashly

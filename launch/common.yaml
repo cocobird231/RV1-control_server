@@ -34,7 +34,7 @@ topic_Control:
 
 # Source of emergency percentages
 safety_prop:
-    gndDetectNode : "grounddetect_0_node" # Node name
+    externalTimeout_ms : 2000.0 # External signal timeout.
 
 # Settings for Params class under vehicle_interfaces/params.h
 generic_prop:

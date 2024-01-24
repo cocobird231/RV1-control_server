@@ -18,7 +18,7 @@ def GammaCorrection(value, gamma, min_bound = 0, max_bound = 1):
     return ratio**gamma * (max_bound - min_bound) + min_bound
 
 ################################################################################################
-#                                       SteeringWheel Parameters
+#                                       Chassis Parameters
 ################################################################################################
 STEERINGWHEEL_TOLERANCE = 1500# left < -1500, 1500 > right
 CAR_LENGTH = 2200# unit: mm
@@ -30,11 +30,16 @@ MIN_RADIUS_4WS = 4100# unit: mm
 MIN_WHEEL_STEER_ANGLE = 0
 MAX_WHEEL_STEER_ANGLE = 20
 
+M1_OFFSET = (1040, 1100)
+M2_OFFSET = (-1040, 1100)
+M3_OFFSET = (1040, -1100)
+M4_OFFSET = (-1040, -1100)
 
 
 ################################################################################################
 #                                       Motor Parameter Definitions
 ################################################################################################
+motorDirectionCorrectionList = [1, 1, 1, 1]
 limitRPM = 500
 limitPWM = 40
 motorIDList = [11, 12, 13, 14]
@@ -359,9 +364,9 @@ def CalSteeringWheelToChassis(swState : SteeringWheel):
             steeringAngList = [-steeringAngle, -steeringAngle, -steeringAngle, -steeringAngle]
 
 
-    for i in range(4):
-        motorPWMList[i] *= motorDirectionList[i]
-        steeringAngList[i] *= steeringCorrectionList[i]
+    # for i in range(4):
+    #     motorPWMList[i] *= motorDirectionList[i]
+    #     steeringAngList[i] *= steeringCorrectionList[i]
 
     motorPWMList = [float(i) for i in motorPWMList]
     steeringAngList = [float(i) for i in steeringAngList]
