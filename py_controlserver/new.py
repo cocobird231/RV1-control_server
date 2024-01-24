@@ -138,12 +138,12 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                     # Check safety
                     if (control2.SAFETY_OVER_CONTROL):
                         emPs = self.getEmergency("nearest")
-                        if (emPs):
+                        if (any(emPs)):
                             emForwardF = True if emPs[0] > 0.7 else False
                             emBackwardF = True if emPs[1] > 0.7 else False
 
                             # check forward or backward TODO: refspeed to pwm
-                            dirIndicator = [1 if i > 0 else -1 for i in self.__outputSignal.drive_motor]
+                            dirIndicator = [1 if i > 0 else -1 if i < 0 else 0 for i in self.__outputSignal.drive_motor]
                             if (emForwardF and not (sum(dirIndicator) <= -2)):# Forward
                                 safetyPassF = False
                             elif (emBackwardF and not (sum(dirIndicator) >= 2)):# Backward
