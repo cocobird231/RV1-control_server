@@ -277,15 +277,17 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                             self.__externalSignal = genMotorPWM.CalSteeringWheelToChassis(getMsg)
 
                             if (len(splitMsgList) > 6):
-                                retStr = "%d:%d:%d:%d:%d:%d:%d:%d:%d" %(self.__externalSignal.drive_motor[0], \
-                                                                        self.__externalSignal.drive_motor[1], \
-                                                                        self.__externalSignal.drive_motor[2], \
-                                                                        self.__externalSignal.drive_motor[3], \
-                                                                        self.__externalSignal.steering_motor[0], \
-                                                                        self.__externalSignal.steering_motor[1], \
-                                                                        self.__externalSignal.steering_motor[2], \
-                                                                        self.__externalSignal.steering_motor[3], \
-                                                                        getMsg.func_0)
+                                retStr = "%d:%d:%d:%d:%d:%d:%d:%d:%d:%d:%d" %(self.__externalSignal.drive_motor[0], \
+                                                                                self.__externalSignal.drive_motor[1], \
+                                                                                self.__externalSignal.drive_motor[2], \
+                                                                                self.__externalSignal.drive_motor[3], \
+                                                                                self.__externalSignal.steering_motor[0], \
+                                                                                self.__externalSignal.steering_motor[1], \
+                                                                                self.__externalSignal.steering_motor[2], \
+                                                                                self.__externalSignal.steering_motor[3], \
+                                                                                getMsg.func_0, \
+                                                                                control2.WIRELESS_BRAKE, \
+                                                                                control2.SAFETY_OVER_CONTROL)
                                 client.sendMsgToClient(self.__remoteDevName, "#" + splitMsgList[-1] + "!" + retStr)# Send timestamp back to remoter
                         else:
                             self.__externalSignal = brkSignal
