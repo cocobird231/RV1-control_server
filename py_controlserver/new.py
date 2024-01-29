@@ -13,13 +13,13 @@ from rclpy.node import Node
 
 from vehicle_interfaces.msg import Header
 from vehicle_interfaces.msg import WheelState
-from vehicle_interfaces.msg import ControlInfo
-from vehicle_interfaces.msg import Chassis
-from vehicle_interfaces.msg import SteeringWheel
+from vehicle_interfaces.msg import ControllerInfo
+from vehicle_interfaces.msg import ControlChassis
+from vehicle_interfaces.msg import ControlSteeringWheel
 
-from vehicle_interfaces.srv import ControlReg
-from vehicle_interfaces.srv import ControlReq
-from vehicle_interfaces.srv import ControlSteeringWheel
+from vehicle_interfaces.srv import ControllerInfoReg
+from vehicle_interfaces.srv import ControllerInfoReq
+from vehicle_interfaces.srv import ControlSteeringWheelReq
 
 from vehicle_interfaces.vehicle_interfaces import VehicleServiceNode
 
@@ -58,13 +58,13 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
         self.__mIDList = genMotorPWM.motorIDList
 
         # Stored ROS2 controller info
-        self.__ros2ControlInfoDict = {}# { 'service_name' : ControlInfo }
+        self.__ros2ControllerInfoDict = {}# { 'service_name' : ControllerInfo }
         self.__ros2ControllerDict = {}# { 'serviceName' : ROS2Controller }
         self.__ros2ControllerList = []# ['serviceName']
 
         # ControlServer service
-        self.__regServer = self.create_service(ControlReg, params.serviceName + '_Reg', self.__regServerCallback)
-        self.__reqServer = self.create_service(ControlReq, params.serviceName + '_Req', self.__reqServerCallback)
+        self.__regServer = self.create_service(ControllerInfoReg, params.serviceName + '_Reg', self.__regServerCallback)
+        self.__reqServer = self.create_service(ControllerInfoReq, params.serviceName + '_Req', self.__reqServerCallback)
 
         # Publish selected control signal to topic via WheelState msg
         self.__pub = self.create_publisher(WheelState, params.topicName, 10)
@@ -72,14 +72,14 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
         self.__pubFrameId = 0
 
         # Frequently modifying
-        self.__currentPubMsg = SteeringWheel()
-        self.__externalInputMsg = SteeringWheel()
-        self.__ros2InputMsg = SteeringWheel()
+        self.__currentPubMsg = ControlSteeringWheel()
+        self.__externalInputMsg = ControlSteeringWheel()
+        self.__ros2InputMsg = ControlSteeringWheel()
 
         # Output control signal
         self.__outputSignal = None
-        self.__externalSignal = None# Chassis()
-        self.__ros2Signal = None# Chassis()
+        self.__externalSignal = None# ControlChassis()
+        self.__ros2Signal = None# ControlChassis()
 
         # Threads
         self.__idclientTh = threading.Thread(target=self.__internalIDClientTh)
@@ -171,8 +171,8 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
             time.sleep(self.__params.sendInterval_s)
 
     def __ros2ControlTh(self):
-        brkSignal = Chassis()
-        brkSignal.wheel_num = 4
+        brkSignal = ControlChassis()
+        brkSignal.unit_type = ControlChassis.UNIT_PWM
         brkSignal.drive_motor = [0.0, 0.0, 0.0, 0.0]
         brkSignal.steering_motor = [0.0, 0.0, 0.0, 0.0]
         brkSignal.brake_motor = [0.0, 0.0, 0.0, 0.0]
@@ -182,10 +182,10 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                 if (control2.ROS2_SIGNAL_INDEX < control2.ROS2_SIGNAL_SIZE):
                     sname = self.__ros2ControllerList[control2.ROS2_SIGNAL_INDEX]
 
-                    request = ControlSteeringWheel.Request()
+                    request = ControlSteeringWheelReq.Request()
                     request.request = True
                     future = self.__ros2ControllerDict[sname].client.call_async(request)
-                    rclpy.spin_until_future_complete(self.__ros2ControllerDict[sname].node, future, timeout_sec=0.02)
+                    rclpy.spin_until_future_complete(self.__ros2ControllerDict[sname].node, future, timeout_sec=0.2)
                     if (not future.done()):
                         self.__ros2Signal = brkSignal
                         self.get_logger().error('[ControlServer.__ros2ControlTh] Failed to call service: %s.' %sname)
@@ -208,8 +208,8 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
         client.setRecvMsgEventHandler(self.__externalIDClientCbFunc, True)# Input function pointer
         self.get_logger().info('[ControlServer.__externalIDClientTh] IDClient object created.')
 
-        brkSignal = Chassis()
-        brkSignal.wheel_num = 4
+        brkSignal = ControlChassis()
+        brkSignal.unit_type = ControlChassis.UNIT_PWM
         brkSignal.drive_motor = [0.0, 0.0, 0.0, 0.0]
         brkSignal.steering_motor = [0.0, 0.0, 0.0, 0.0]
         brkSignal.brake_motor = [0.0, 0.0, 0.0, 0.0]
@@ -260,7 +260,7 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
                             clu = int(splitMsgList[4])#         Clutch pedal value
                             button = int(splitMsgList[5])#      Button value
 
-                            getMsg = SteeringWheel()
+                            getMsg = ControlSteeringWheel()
 
                             if (gear == 'Park') : getMsg.gear = getMsg.GEAR_PARK
                             elif (gear == 'Reverse') : getMsg.gear = getMsg.GEAR_REVERSE
@@ -358,15 +358,15 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
             self.get_logger().info('[ControlServer.__internalIDClientTh] Already connected.')
             time.sleep(1)
 
-    def __regServerCallback(self, request, response):# ControlReg.srv
-        self.__ros2ControlInfoDict[request.request.service_name] = request.request
+    def __regServerCallback(self, request, response):# ControllerInfoReg.srv
+        self.__ros2ControllerInfoDict[request.request.service_name] = request.request
 
         # Add to ROS2 controller list
-        if (request.request.service_name not in self.__ros2ControllerList and request.request.msg_type == ControlInfo.MSG_TYPE_STEERING_WHEEL):
+        if (request.request.service_name not in self.__ros2ControllerList and request.request.msg_type == ControllerInfo.MSG_TYPE_STEERING_WHEEL):
             self.__ros2ControllerDict[request.request.service_name] = ROS2Controller()
             self.__ros2ControllerDict[request.request.service_name].serviceName = request.request.service_name
             self.__ros2ControllerDict[request.request.service_name].node = Node(self.__params.nodeName + '_' + request.request.service_name + '_client')
-            self.__ros2ControllerDict[request.request.service_name].client = self.__ros2ControllerDict[request.request.service_name].node.create_client(ControlSteeringWheel, request.request.service_name)
+            self.__ros2ControllerDict[request.request.service_name].client = self.__ros2ControllerDict[request.request.service_name].node.create_client(ControlSteeringWheelReq, request.request.service_name)
 
             self.__ros2ControllerList.append(request.request.service_name)
             self.get_logger().info('[ControlServer.__regServerCallback] Add %s to list.' %request.request.service_name)
@@ -374,12 +374,12 @@ class ControlServer(VehicleServiceNode):# Devinfo, SafetyReq, Timesync
         response.response = True
         return response
 
-    def __reqServerCallback(self, request, response):# ControlReq.srv
+    def __reqServerCallback(self, request, response):# ControllerInfoReq.srv
         response.response = True
         if (request.service_name == 'all'):
-            response.control_info_vec = [self.__ros2ControlInfoDict[item] for item in self.__ros2ControlInfoDict]
-        elif (request.service_name in self.__ros2ControlInfoDict):
-            response.control_info_vec = [self.__ros2ControlInfoDict[request.service_name]]
+            response.control_info_vec = [self.__ros2ControllerInfoDict[item] for item in self.__ros2ControllerInfoDict]
+        elif (request.service_name in self.__ros2ControllerInfoDict):
+            response.control_info_vec = [self.__ros2ControllerInfoDict[request.service_name]]
         else:
             response.response = False
         self.get_logger().info('[ControlServer.__reqServerCallback] Request [%s] controller %s.' % (request.service_name, 'succeeded' if (response.response) else 'failed'))

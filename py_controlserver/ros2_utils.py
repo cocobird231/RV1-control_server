@@ -43,12 +43,12 @@ class ControlParameters(GenericParams):
         self.declare_parameter('externalIDServerDeviceID', self.externalIDServerDeviceID)
 
         self.declare_parameter('serviceName', self.serviceName)
-        
+
         self.declare_parameter('topicName', self.topicName)
         self.declare_parameter('publishInterval_s', self.publishInterval_s)
         self.declare_parameter('externalTimeout_ms', self.externalTimeout_ms)
         self._getParam()
-    
+
     def _getParam(self):
         self.operationMode = self.get_parameter('operationMode').get_parameter_value().string_value
         self.sendInterval_s = self.get_parameter('sendInterval_s').get_parameter_value().double_value
@@ -79,7 +79,7 @@ class WheelStatePublisher(VehicleServiceNode):
         self.msg.header.device_id = params.nodeName
         self.msg.header.ref_publish_time_ms = params.publishInterval_s * 1000.0
         self.msgLock = threading.Lock()
-    
+
     def setMsg(self, gear : str, steering : int, thr : int, brk : int, clu : int, button : int, func : int):
         self.msgLock.acquire()
         if (gear == 'Park'):
@@ -136,7 +136,7 @@ class WheelStateSubscriber(VehicleServiceNode):
         self.get_logger().info('I heard: %03d|%05d|%05d|%05d|%05d|%03d|%03d' %(msg.gear, msg.steering, \
             msg.pedal_throttle, msg.pedal_brake, msg.pedal_clutch, msg.button, msg.func))
         # ConvertSteeringWheelToCommand(gear, msg.steering, msg.pedal_throttle, msg.pedal_brake, msg.pedal_clutch, msg.button)
-    
+
     def getMsg(self):
         self.msgLock.acquire()
         ret0 = self.gear_
